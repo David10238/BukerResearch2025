@@ -18,7 +18,7 @@ def process_file(name:str):
     pass
 
   # setup column names
-  column_names = ['Time', 'Pressure', 'Tempurature', 'DewPoint', 'Wind_U', 'Wind_V', 'Longitude', 'Latitude', 'Height']
+  column_names = ['time', 'pressure', 'temperature', 'dewpoint', 'wind_u', 'wind_v', 'longitude', 'latitude', 'height']
   output_file.write(','.join(column_names) + '\n')
 
   # strip whitespace

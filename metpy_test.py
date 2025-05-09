@@ -2,6 +2,7 @@
 import numpy as np
 import pandas as pd
 from metpy.units import units
+from metpy_dataframe_loader import *
 
 distance = np.arange(1, 5) * units.meters
 
@@ -9,9 +10,10 @@ time = units.Quantity(np.arange(2, 10, 2), 'sec')
 
 print(distance / time)
 
-path = "Full-CP20-sounding-dataset-clean/snd-19940409-205903-storm1-10m.zagl"
+name = "snd-19940507-000304-storm2-10m.zagl"
 
-df = pd.read_csv(path)
-df = df.drop(df.columns[0], axis=1)
+raw_df = load_sounding_df(name)
+metpy_df = convert_df_to_metpy(raw_df)
 
-print(df.head(10))
+print(raw_df.head(10))
+print(metpy_df.head(10))
