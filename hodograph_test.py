@@ -11,8 +11,7 @@ from metpy_dataframe_loader import *
 
 name = "snd-19940507-000304-storm2-10m.zagl"
 
-df = load_sounding_df(name)
-df = convert_df_to_metpy(df)
+df = load_and_convert_sounding(name).as_df
 
 # Drop any rows with all NaN values for T, Td, winds
 df = df.dropna(subset=('temperature', 'dewpoint', 'direction', 'speed'), how='all').reset_index(drop=True)
