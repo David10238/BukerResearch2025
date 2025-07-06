@@ -2,7 +2,12 @@ import pandas as pd
 import numpy as np
 from metpy.units import units
 import metpy.calc as mpcalc
-from metpy.calc import cape_cin, parcel_profile
+from metpy.calc import cape_cin, parcel_profile, bulk_shear
+
+class Shear:
+  def __init__(self, u:float, v:float):
+    self.u = u
+    self.v = v
 
 class StormEnergy:
   def __init__(self, cape:float, cin:float):
@@ -57,6 +62,29 @@ class Sounding:
       prof = parcel_profile(p, T[0], Td[0]).to('degC')
       energy = cape_cin(p, T, Td, prof)
       return StormEnergy(energy[0], energy[1])
+    except:
+      return None
+  
+  def calculate_bulk_shear(self, low:int = -1, high:int = -1):
+    h = self.height
+    low = np.min(h) if low < 0 else low
+    high = np.max(h) if high < 0 else high
+
+    msk = (h >= low) & (h <= high)
+
+    p = self.pressure[msk]
+    u = self.wind_u[msk]
+    v = self.wind_v[msk]
+
+    msk = np.isnan(p) | np.isnan(u) | np.isnan(v)
+
+    p = p[~msk] * units.mbar
+    u = u[~msk] * units.meter / units.second
+    v = v[~msk] * units.meter / units.second
+
+    try:
+      shear = bulk_shear(p, u, v)
+      return Shear(shear[0], shear[1])
     except:
       return None
 
