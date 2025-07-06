@@ -7,7 +7,7 @@ from metpy.cbook import get_test_data
 from metpy.plots import add_metpy_logo, Hodograph, SkewT
 from metpy.units import units
 
-from metpy_dataframe_loader import *
+from sounding import load_and_convert_sounding
 
 name = "snd-19940507-000304-storm2-10m.zagl"
 
@@ -48,7 +48,7 @@ skew.ax.set_xlim(-30, 40)
 
 # Create a hodograph
 ax = fig.add_subplot(gs[0, -1])
-h = Hodograph(ax, component_range=60.)
+h = Hodograph(ax, component_range=60)
 h.add_grid(increment=20)
 h.plot(u, v)
 
