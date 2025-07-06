@@ -14,6 +14,12 @@ class StormEnergy:
     self.cape = cape
     self.cin = cin
 
+class LFC:
+  def __init__(self, height:float, pressure:float, temperature:float):
+    self.height = height
+    self.pressure = pressure
+    self.temperature = temperature
+
 # time (second)
 # pressure (mbar)
 # height (meter)
@@ -87,6 +93,24 @@ class Sounding:
       return Shear(shear[0], shear[1])
     except:
       return None
+    
+  def calculate_lfc(self)->LFC | None:
+
+    lfc_data = mpcalc.lfc(self.pressure * units.mbar, self.temperature*units.degC, self.dewpoint*units.degC)
+
+    # find closest pressure
+    pressure = lfc_data[0]
+    abs_vals = np.abs(self.pressure * units.mbar - pressure)
+    if(np.all(np.isnan(abs_vals))):
+      return None
+    
+    idx = np.nanargmin(abs_vals)
+    lfc_height = self.height[idx]
+
+    temperature = lfc_data[1]
+
+    height = lfc_height
+    return LFC(height, pressure, temperature)
 
 def __load_sounding_df(file_name:str)->pd.DataFrame:
   clean_directory = "Full-CP20-sounding-dataset-clean"

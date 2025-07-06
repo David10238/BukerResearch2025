@@ -1,6 +1,4 @@
 import os
-
-from metpy_dataframe_loader import *
 from sounding import load_and_convert_sounding
 
 name = "snd-19940507-000304-storm2-10m.zagl"
