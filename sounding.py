@@ -47,25 +47,18 @@ class Sounding:
     Td = self.dewpoint
     Td = Td[msk]
 
-    # make sure data exists
+    # metpy is fussy if this mask isn't applied
     msk = np.isnan(p) | np.isnan(T) | np.isnan(Td)
-
-    if np.all(msk):
-      return None
-
     p = p[~msk] * units.mbar
     T = T[~msk] * units.degC
     Td = Td[~msk] * units.degC
 
-    # ensure pressure is decreasing
-    cleaned_pressure = p[~np.isnan(p)]
-    if np.any(np.diff(cleaned_pressure) > 0):
+    try:
+      prof = parcel_profile(p, T[0], Td[0]).to('degC')
+      energy = cape_cin(p, T, Td, prof)
+      return StormEnergy(energy[0], energy[1])
+    except:
       return None
-
-    prof = parcel_profile(p, T[0], Td[0]).to('degC')
-    energy = cape_cin(p, T, Td, prof)
-
-    return StormEnergy(energy[0], energy[1])
 
 def __load_sounding_df(file_name:str)->pd.DataFrame:
   clean_directory = "Full-CP20-sounding-dataset-clean"
