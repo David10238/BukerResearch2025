@@ -1,8 +1,13 @@
-
 import pandas as pd
 import numpy as np
 from metpy.units import units
 import metpy.calc as mpcalc
+from metpy.calc import cape_cin, parcel_profile
+
+class StormEnergy:
+  def __init__(self, cape:float, cin:float):
+    self.cape = cape
+    self.cin = cin
 
 # time (second)
 # pressure (mbar)
@@ -25,6 +30,42 @@ class Sounding:
     self.latitude = df['latitude'].to_numpy()
 
     self.as_df = df
+  
+  def calculate_energy(self, maxHeight:int = -1)-> StormEnergy | None:
+    if(maxHeight < 0):
+      maxHeight = self.height.max()    
+
+    H = self.height
+    msk = H <= maxHeight
+
+    p = self.pressure
+    p = p[msk]
+
+    T = self.temperature
+    T = T[msk]
+
+    Td = self.dewpoint
+    Td = Td[msk]
+
+    # make sure data exists
+    msk = np.isnan(p) | np.isnan(T) | np.isnan(Td)
+
+    if np.all(msk):
+      return None
+
+    p = p[~msk] * units.mbar
+    T = T[~msk] * units.degC
+    Td = Td[~msk] * units.degC
+
+    # ensure pressure is decreasing
+    cleaned_pressure = p[~np.isnan(p)]
+    if np.any(np.diff(cleaned_pressure) > 0):
+      return None
+
+    prof = parcel_profile(p, T[0], Td[0]).to('degC')
+    energy = cape_cin(p, T, Td, prof)
+
+    return StormEnergy(energy[0], energy[1])
 
 def __load_sounding_df(file_name:str)->pd.DataFrame:
   clean_directory = "Full-CP20-sounding-dataset-clean"
@@ -51,7 +92,6 @@ def __convert_df_to_metpy(df:pd.DataFrame)->pd.DataFrame:
     'wind_u' : df['wind_u'],
     'wind_v' : df['wind_v']
   })
-
 
 def load_and_convert_sounding(file_path:str) -> Sounding:
   return Sounding(__convert_df_to_metpy(__load_sounding_df(file_path)))
