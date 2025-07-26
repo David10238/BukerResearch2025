@@ -10,6 +10,12 @@ import pandas as pd
 
 class StormMetadata:
   def __init__(self, latitude:float, longitude:float, storm_direction:float, storm_speed:float, tornado:bool, ef_rating:int | None):
+    self.latitude = latitude
+    self.longitude = longitude
+    self.storm_direction = storm_direction
+    self.storm_speed = storm_speed
+    self.tornado = tornado
+    self.ef_rating = ef_rating
     pass
 
 class StormMetadataLoader:
@@ -240,7 +246,7 @@ class Sounding:
     
     return superhelicity
   
-  def calculate_srh(self, storm_motion:tuple[float, float], depth:int=3000)->float | None:
+  def calculate_srh(self, storm_motion:tuple[float, float], depth:int=0)->float | None:
     mask = self.height > depth | np.isnan(self.height) | np.isnan(self.wind_u) | np.isnan(self.wind_v)
 
     heights = self.height[~mask]
@@ -270,13 +276,13 @@ class Sounding:
     
     return srh
   
-  def calculate_left_srh(self, depth:int=3000)->float | None:
+  def calculate_left_srh(self, depth:int=0)->float | None:
     storm_motion = self.calculate_bunkers_storm_motion()
     if not storm_motion:
       return None
     return self.calculate_srh(storm_motion.leftMotion, depth)
   
-  def calculate_right_srh(self, depth:int=3000)->float | None:
+  def calculate_right_srh(self, depth:int=0)->float | None:
     storm_motion = self.calculate_bunkers_storm_motion()
     if not storm_motion:
       return None
