@@ -1,10 +1,12 @@
 import os
 
-from sounding import load_and_convert_sounding
+from sounding import load_and_convert_sounding, StormMetadataLoader
 import numpy as np
 
+loader = StormMetadataLoader()
+
 name = "snd-19940507-000304-storm2-10m.zagl"
-sounding = load_and_convert_sounding(name)
+sounding = load_and_convert_sounding(loader, name)
 
 storm_motion = sounding.calculate_bunkers_storm_motion()
 super_helicity = sounding.calculate_superhelicity()
@@ -16,16 +18,14 @@ print(srh_left)
 print(srh_right)
 
 
-# verify my assertion works
 clean_directory = "Full-CP20-sounding-dataset-clean"
-# process all files
 all_files = os.listdir(clean_directory)
 
 found_motions = 0
 missed_motions = 0
 
 for file_name in all_files:
-  sounding = load_and_convert_sounding(file_name)
+  sounding = load_and_convert_sounding(loader, file_name)
   storm_motion = sounding.calculate_bunkers_storm_motion()
   super_helicity = sounding.calculate_superhelicity()
   srh_left = sounding.calculate_left_srh()

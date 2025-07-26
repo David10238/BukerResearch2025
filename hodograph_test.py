@@ -7,11 +7,12 @@ from metpy.cbook import get_test_data
 from metpy.plots import add_metpy_logo, Hodograph, SkewT
 from metpy.units import units
 
-from sounding import load_and_convert_sounding
+from sounding import load_and_convert_sounding, StormMetadataLoader
 
 name = "snd-19940507-000304-storm2-10m.zagl"
 
-df = load_and_convert_sounding(name).as_df
+loader = StormMetadataLoader()
+df = load_and_convert_sounding(loader, name).as_df
 
 # Drop any rows with all NaN values for T, Td, winds
 df = df.dropna(subset=('temperature', 'dewpoint', 'direction', 'speed'), how='all').reset_index(drop=True)

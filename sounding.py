@@ -5,6 +5,45 @@ import metpy.calc as mpcalc
 from metpy.calc import cape_cin, parcel_profile, bulk_shear, lifted_index, mixed_parcel
 from numpy import concatenate
 
+from typing import TypedDict
+import pandas as pd
+
+class StormMetadata:
+  def __init__(self, latitude:float, longitude:float, storm_direction:float, storm_speed:float, tornado:bool, ef_rating:int | None):
+    pass
+
+class StormMetadataLoader:
+  def __init__(self):
+    df = pd.read_csv("snd-storm-attributes.csv")
+
+    date = df['yyyymmdd'].tolist()
+    time = df['hhmmss'].tolist()
+    storm_number = df['storm#'].tolist()
+    latitude = df["latstorm"].tolist()
+    longitude = df["lonstorm"].tolist()
+    storm_direction = df['dirstm'].tolist()
+    storm_speed = df['spdstm'].tolist()
+    tornado = df['tor'].tolist()
+
+    self._metadata = dict()
+
+    for index in range(len(df)):
+      file_name = f'snd-{date[index]}-{str(time[index]).rjust(6, "0")}-{storm_number[index]}-10m.zagl'
+      
+      i_tornado = tornado[index]
+
+      self._metadata[file_name] = StormMetadata(
+        latitude=latitude[index],
+        longitude=longitude[index],
+        storm_direction=storm_direction[index],
+        storm_speed=storm_speed[index],
+        tornado = i_tornado >= 0,
+        ef_rating = i_tornado if (i_tornado >= 0 and i_tornado <= 5) else None
+      )
+
+  def of_storm(self, fileName:str) -> StormMetadata:
+    return self._metadata[fileName]
+
 class Shear:
   def __init__(self, u:float, v:float):
     self.u = u
@@ -34,7 +73,8 @@ class BunkersMotion:
 # dewpoint (degC)
 # speed (meter)
 class Sounding:
-  def __init__(self, df:pd.DataFrame):
+  def __init__(self, metadata:StormMetadata, df:pd.DataFrame):
+    self.metadata = metadata
     self.time = df['time'].to_numpy()
     self.pressure = df['pressure'].to_numpy()
     self.height = df['height'].to_numpy()
@@ -269,5 +309,5 @@ def __convert_df_to_metpy(df:pd.DataFrame)->pd.DataFrame:
     'wind_v' : df['wind_v']
   })
 
-def load_and_convert_sounding(file_path:str) -> Sounding:
-  return Sounding(__convert_df_to_metpy(__load_sounding_df(file_path)))
+def load_and_convert_sounding(metadataLoader:StormMetadataLoader, file_path:str) -> Sounding:
+  return Sounding(metadataLoader.of_storm(file_path.split('/')[-1]), __convert_df_to_metpy(__load_sounding_df(file_path)))
