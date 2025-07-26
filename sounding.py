@@ -2,7 +2,8 @@ import pandas as pd
 import numpy as np
 from metpy.units import units
 import metpy.calc as mpcalc
-from metpy.calc import cape_cin, parcel_profile, bulk_shear
+from metpy.calc import cape_cin, parcel_profile, bulk_shear, lifted_index, mixed_parcel
+from numpy import concatenate
 
 class Shear:
   def __init__(self, u:float, v:float):
@@ -74,6 +75,29 @@ class Sounding:
       prof = parcel_profile(p, T[0], Td[0]).to('degC')
       energy = cape_cin(p, T, Td, prof)
       return StormEnergy(energy[0], energy[1])
+    except:
+      return None
+    
+  def calculate_lifted_index(self)->float | None:
+    p = self.pressure * units.mbar
+    T = self.temperature * units.degC
+    Td = self.dewpoint * units.degC
+    h = self.height * units.m
+    
+    try:
+      # Calculate 500m mixed parcel
+      parcel_p, parcel_t, parcel_td = mixed_parcel(p, T, Td, depth=500 * units.m, height=h)
+
+      # Replace sounding temp/pressure in lowest 500m with mixed values
+      above = h > 500 * units.m
+      press = concatenate([[parcel_p], p[above]])
+      temp = concatenate([[parcel_t], T[above]])
+
+      # Calculate parcel profile from our new mixed parcel
+      mixed_prof = parcel_profile(press, parcel_t, parcel_td)
+
+      # Calculate lifted index using our mixed profile
+      return lifted_index(press, temp, mixed_prof)[0]
     except:
       return None
   
