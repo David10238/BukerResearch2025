@@ -3,6 +3,7 @@ import os
 from sounding import load_and_convert_sounding, StormMetadataLoader
 import numpy as np
 import pandas as pd
+from metpy.units import units
 
 loader = StormMetadataLoader()
 
@@ -27,14 +28,14 @@ for file in os.listdir("Full-CP20-sounding-dataset-clean"):
   srh_right.append(sounding.calculate_right_srh())
 
   _bulk_shear = sounding.calculate_bulk_shear()
-  bulk_shear.append((_bulk_shear.u**2 + _bulk_shear.v**2)**0.5 if _bulk_shear else None)
+  bulk_shear.append(((_bulk_shear.u**2 + _bulk_shear.v**2)**0.5).magnitude if _bulk_shear else None)
 
   tornado.append(1 if sounding.metadata.tornado else 0)
   ef_rating.append(sounding.metadata.ef_rating)
 
   _storm_energy = sounding.calculate_energy()
-  cape.append(_storm_energy.cape if _storm_energy else None)
-  cin.append(_storm_energy.cin if _storm_energy else None)
+  cape.append(_storm_energy.cape.magnitude if _storm_energy else None)
+  cin.append(_storm_energy.cin.magnitude if _storm_energy else None)
 
 df = pd.DataFrame({
   "storm_speed": storm_speed,

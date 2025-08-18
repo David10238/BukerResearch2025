@@ -51,12 +51,12 @@ class StormMetadataLoader:
     return self._metadata[fileName]
 
 class Shear:
-  def __init__(self, u:float, v:float):
+  def __init__(self, u, v):
     self.u = u
     self.v = v
 
 class StormEnergy:
-  def __init__(self, cape:float, cin:float):
+  def __init__(self, cape, cin):
     self.cape = cape
     self.cin = cin
 
